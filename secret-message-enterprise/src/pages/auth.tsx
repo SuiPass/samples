@@ -2,7 +2,7 @@ import { Button, Container } from '@/components';
 import { useAppWallet } from '@/hooks';
 import * as React from 'react';
 
-export const Landing: React.FC = () => {
+export const Auth: React.FC = () => {
   const { connect } = useAppWallet();
   return (
     <div className="relative min-h-dvh">
