@@ -1,7 +1,7 @@
 import { requestApi } from '@/apis';
-import { Button, Container } from '@/components';
+import { Button, Container, Loader } from '@/components';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 export function Home() {
   const [showMsg, setShowMsg] = useState<boolean>(false);
@@ -11,24 +11,65 @@ export function Home() {
   const onRevealClick = () => {
     setShowMsg(true);
   };
-  const userDetailQuery = useQuery({ queryKey: ['userDetail'], queryFn: requestApi.userDetail });
+
+  const apiKey = useMemo(() => {
+    return localStorage.getItem('ENTERPRISE_KEY');
+  }, []);
+
+  const userDetailQuery = useQuery({
+    queryKey: ['userDetail', apiKey],
+    queryFn: () => requestApi.userDetail(apiKey!),
+    enabled: !!apiKey,
+  });
+
+  const entQuery = useQuery({
+    queryKey: ['ent', apiKey],
+    queryFn: () => requestApi.enterprise(apiKey!),
+    enabled: !!apiKey,
+  });
+
+  if (!apiKey)
+    return (
+      <Container>
+        <main className="flex flex-col self-center mt-40 w-full max-w-[1120px] max-md:max-w-full">
+          <div className="flex flex-col items-center gap-5 w-full self-start text-base font-semibold">
+            <p>Missing API KEY</p>
+            <p>Please set it in the localStorage with name ENTERPRISE_KEY</p>
+          </div>
+        </main>
+      </Container>
+    );
+
+  if (!entQuery.data)
+    return (
+      <Container>
+        <main className="flex flex-col self-center mt-40 w-full max-w-[1120px] max-md:max-w-full">
+          <div className="flex flex-col items-center gap-5 w-full self-start text-base font-semibold">
+            <Loader />
+          </div>
+        </main>
+      </Container>
+    );
 
   return (
     <Container>
       <main className="flex flex-col self-center mt-40 w-full max-w-[1120px] max-md:max-w-full">
         <div className="flex flex-col items-center gap-5 w-full self-start text-base font-semibold">
-          <p>Demo</p>
           {userDetailQuery.data && (
             <>
               <p>Wallet: {userDetailQuery.data.address}</p>
               <p>Total score on SuiPass: {userDetailQuery.data.totalScore}</p>
             </>
           )}
-          <p>Your Identity score need to be at least 1000 to reveal the secret message</p>
+
+          <p>
+            Your Identity score need to be at least {entQuery.data.threshold} to reveal the secret
+            message
+          </p>
           <Button onClick={onGainMoreClick}>Gain more identity scores</Button>
           <Button
             onClick={onRevealClick}
-            disabled={userDetailQuery.data && userDetailQuery.data.totalScore < 1000}
+            disabled={userDetailQuery.data && !userDetailQuery.data.isValid}
           >
             Reveal the secret message
           </Button>
