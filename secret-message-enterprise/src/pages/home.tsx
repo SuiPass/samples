@@ -58,10 +58,11 @@ export function Home() {
           {userDetailQuery.data && (
             <>
               <p>Wallet: {userDetailQuery.data.address}</p>
-              <p>Total score on SuiPass: {userDetailQuery.data.totalScore}</p>
+              <p>
+                Total score on {'"' + entQuery.data.name + '"'}: {userDetailQuery.data.totalScore}
+              </p>
             </>
           )}
-
           <p>
             Your Identity score need to be at least {entQuery.data.threshold} to reveal the secret
             message
@@ -74,7 +75,7 @@ export function Home() {
             Reveal the secret message
           </Button>
           <div className="bg-slate-800 p-10 rounded-xl text-white">
-            <p>Secret Message: {showMsg ? 'Hello from SuiPass' : '****'}</p>
+            <p>Secret Message: {showMsg ? 'Hello from "' + entQuery.data.name + '"' : '****'}</p>
           </div>
         </div>
       </main>
